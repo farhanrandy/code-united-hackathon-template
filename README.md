@@ -47,9 +47,9 @@ A short description of your project.
 
 ## Tech Stack
 
-- …
-- …
-- …
+- Next
+- gemini
+- tailwind
 
 ---
 
