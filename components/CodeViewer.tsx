@@ -12,7 +12,11 @@ function cx(...cls: Array<string | false | undefined>) {
   return cls.filter(Boolean).join(" ");
 }
 
-export default function CodeViewer({ code, selectedLine, onSelectLine }: Props) {
+export default function CodeViewer({
+  code,
+  selectedLine,
+  onSelectLine,
+}: Props) {
   const lines = useMemo(() => code.replace(/\r\n/g, "\n").split("\n"), [code]);
 
   return (
@@ -48,7 +52,9 @@ export default function CodeViewer({ code, selectedLine, onSelectLine }: Props) 
               >
                 {n}
               </button>
-              <span className="whitespace-pre-wrap break-words flex-1">{line || " "}</span>
+              <span className="whitespace-pre-wrap break-words flex-1">
+                {line || " "}
+              </span>
             </div>
           );
         })}

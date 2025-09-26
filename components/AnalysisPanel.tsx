@@ -94,7 +94,11 @@ export default function AnalysisPanel({
           <CopyButton
             value={`Time: ${result.bigO?.time ?? "-"} | Space: ${
               result.bigO?.space ?? "-"
-            }${result.bigO?.rationale ? `\nRationale: ${result.bigO.rationale}` : ""}`}
+            }${
+              result.bigO?.rationale
+                ? `\nRationale: ${result.bigO.rationale}`
+                : ""
+            }`}
           />
         </div>
         {result.bigO?.rationale && (

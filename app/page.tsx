@@ -183,7 +183,9 @@ export default function Page() {
 
         {/* Right: Analysis */}
         <div className="rounded-xl border shadow-sm bg-white p-4 sm:p-6 min-w-0">
-          <h2 className="text-2xl font-semibold tracking-tight mb-3">Analysis</h2>
+          <h2 className="text-2xl font-semibold tracking-tight mb-3">
+            Analysis
+          </h2>
           <AnalysisPanel
             result={result}
             selectedLine={selectedLine}
