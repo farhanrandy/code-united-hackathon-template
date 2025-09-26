@@ -6,7 +6,7 @@ Paste code → get line-by-line explanations, summary, complexity, issues, refac
 
 ```bash
 npm i
-npm i openai zod
+npm i @google/genai zod
 ```
 
 Create `.env.local`:
