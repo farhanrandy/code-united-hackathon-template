@@ -12,7 +12,7 @@ npm i openai zod
 Create `.env.local`:
 
 ```bash
-OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=..
 ```
 
 ## Dev
