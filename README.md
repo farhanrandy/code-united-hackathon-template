@@ -83,6 +83,6 @@ A short description of your project.
 
 ## Demo / Deployment
 
-👉 [Live Demo](https://example-demo.com)
+👉 [Live Demo](https://code-explainer-ashy.vercel.app/)
 
 ---
