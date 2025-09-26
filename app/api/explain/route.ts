@@ -91,7 +91,7 @@ export async function POST(req: Request) {
       const ai = new GoogleGenAI({ apiKey });
 
       const system =
-        "You are a precise code explainer. Return STRICT JSON matching this shape: { \"language\": string, \"summary\": string, \"bigO\": { \"time\": string, \"space\": string, \"rationale\"?: string }, \"byLine\": [ { \"line\": number, \"code\": string, \"explanation\": string } ], \"potentialIssues\": string[], \"refactors\": string[], \"tests\": string[] }. No extra commentary. No markdown. Only JSON.";
+        'You are a precise code explainer. Return STRICT JSON matching this shape: { "language": string, "summary": string, "bigO": { "time": string, "space": string, "rationale"?: string }, "byLine": [ { "line": number, "code": string, "explanation": string } ], "potentialIssues": string[], "refactors": string[], "tests": string[] }. No extra commentary. No markdown. Only JSON.';
 
       const user =
         `Language: ${body.language}. Autodetect: ${body.autodetect}. Depth: ${body.depth}.\n` +

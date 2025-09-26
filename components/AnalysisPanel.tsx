@@ -1,26 +1,32 @@
-'use client'
+"use client";
 
-import type { ExplainResponse } from '@/types/explain'
-import CopyButton from './CopyButton'
+import type { ExplainResponse } from "@/types/explain";
+import CopyButton from "./CopyButton";
 
 type Props = {
-  result: ExplainResponse | null
-  selectedLine?: number
-  onSelectLine?: (n: number) => void
-}
+  result: ExplainResponse | null;
+  selectedLine?: number;
+  onSelectLine?: (n: number) => void;
+};
 
-export default function AnalysisPanel({ result, selectedLine, onSelectLine }: Props) {
+export default function AnalysisPanel({
+  result,
+  selectedLine,
+  onSelectLine,
+}: Props) {
   if (!result) {
     return (
       <div className="card">
-        <p className="text-sm text-neutral-600">No analysis yet. Paste code and click “Explain Code”.</p>
+        <p className="text-sm text-neutral-600">
+          No analysis yet. Paste code and click “Explain Code”.
+        </p>
       </div>
-    )
+    );
   }
 
-  const complexity = `Time: ${result.bigO?.time ?? 'n/a'}, Space: ${result.bigO?.space ?? 'n/a'}${
-    result.bigO?.rationale ? `\nRationale: ${result.bigO.rationale}` : ''
-  }`
+  const complexity = `Time: ${result.bigO?.time ?? "n/a"}, Space: ${
+    result.bigO?.space ?? "n/a"
+  }${result.bigO?.rationale ? `\nRationale: ${result.bigO.rationale}` : ""}`;
 
   return (
     <div className="space-y-4">
@@ -32,7 +38,9 @@ export default function AnalysisPanel({ result, selectedLine, onSelectLine }: Pr
               <button
                 type="button"
                 className={`w-full text-left rounded-md px-2 py-2 hover:bg-neutral-50 border ${
-                  selectedLine === item.line ? 'bg-yellow-50 border-yellow-200' : 'border-transparent'
+                  selectedLine === item.line
+                    ? "bg-yellow-50 border-yellow-200"
+                    : "border-transparent"
                 }`}
                 onClick={() => onSelectLine?.(item.line)}
               >
@@ -52,9 +60,11 @@ export default function AnalysisPanel({ result, selectedLine, onSelectLine }: Pr
       <div className="card space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">Summary</h3>
-          <CopyButton value={result.summary ?? ''} />
+          <CopyButton value={result.summary ?? ""} />
         </div>
-        <p className="text-sm leading-6 text-neutral-800">{result.summary ?? '—'}</p>
+        <p className="text-sm leading-6 text-neutral-800">
+          {result.summary ?? "—"}
+        </p>
       </div>
 
       <div className="card space-y-2">
@@ -63,15 +73,15 @@ export default function AnalysisPanel({ result, selectedLine, onSelectLine }: Pr
           <CopyButton value={complexity} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="chip">Time: {result.bigO?.time ?? 'n/a'}</span>
-          <span className="chip">Space: {result.bigO?.space ?? 'n/a'}</span>
+          <span className="chip">Time: {result.bigO?.time ?? "n/a"}</span>
+          <span className="chip">Space: {result.bigO?.space ?? "n/a"}</span>
         </div>
         {result.bigO?.rationale && (
           <p className="text-sm text-neutral-800">{result.bigO.rationale}</p>
         )}
       </div>
 
-      {!!(result.potentialIssues?.length) && (
+      {!!result.potentialIssues?.length && (
         <div className="card">
           <h3 className="font-semibold mb-2">Potential Issues</h3>
           <ul className="list-disc pl-5 space-y-1 text-sm">
@@ -82,7 +92,7 @@ export default function AnalysisPanel({ result, selectedLine, onSelectLine }: Pr
         </div>
       )}
 
-      {!!(result.refactors?.length) && (
+      {!!result.refactors?.length && (
         <div className="card">
           <h3 className="font-semibold mb-2">Refactors</h3>
           <ul className="list-disc pl-5 space-y-1 text-sm">
@@ -93,7 +103,7 @@ export default function AnalysisPanel({ result, selectedLine, onSelectLine }: Pr
         </div>
       )}
 
-      {!!(result.tests?.length) && (
+      {!!result.tests?.length && (
         <div className="card">
           <h3 className="font-semibold mb-2">Suggested Tests</h3>
           <ul className="list-disc pl-5 space-y-1 text-sm">
@@ -104,5 +114,5 @@ export default function AnalysisPanel({ result, selectedLine, onSelectLine }: Pr
         </div>
       )}
     </div>
-  )
+  );
 }

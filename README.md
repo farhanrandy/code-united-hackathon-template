@@ -3,26 +3,33 @@
 Paste code → get line-by-line explanations, summary, complexity, issues, refactors, tests.
 
 ## Setup
+
 ```bash
 npm i
 npm i openai zod
 ```
+
 Create `.env.local`:
+
 ```bash
 OPENAI_API_KEY=sk-...
 ```
 
 ## Dev
+
 ```bash
 npm run dev
 ```
+
 Open http://localhost:3000
 
 ## Deploy
+
 - Push to GitHub, import in Vercel, set `OPENAI_API_KEY` in Project → Settings → Environment Variables.
 - Redeploy.
 
 ## How to Use
+
 1. Select Language (or keep Auto-detect) and Depth (Detailed recommended).
 2. Paste your code into the textarea (or click Use sample).
 3. Click Explain Code.

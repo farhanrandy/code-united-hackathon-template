@@ -1,58 +1,67 @@
-'use client'
+"use client";
 
-import { useEffect, useMemo, useState } from 'react'
-import type { ExplainRequest, ExplainResponse } from '@/types/explain'
-import CodeViewer from '@/components/CodeViewer'
-import AnalysisPanel from '@/components/AnalysisPanel'
+import { useEffect, useMemo, useState } from "react";
+import type { ExplainRequest, ExplainResponse } from "@/types/explain";
+import CodeViewer from "@/components/CodeViewer";
+import AnalysisPanel from "@/components/AnalysisPanel";
 
-const SAMPLE = `function sumUnique(arr) { const set = new Set(arr); let sum = 0; for (const v of set) sum += v; return sum; }\nconsole.log(sumUnique([1,2,2,3]));`
+const SAMPLE = `function sumUnique(arr) { const set = new Set(arr); let sum = 0; for (const v of set) sum += v; return sum; }\nconsole.log(sumUnique([1,2,2,3]));`;
 
 export default function Page() {
-  const [code, setCode] = useState('')
-  const [language, setLanguage] = useState<ExplainRequest['language']>('auto')
-  const [depth, setDepth] = useState<NonNullable<ExplainRequest['depth']>>('detailed')
-  const [selectedLine, setSelectedLine] = useState<number | undefined>(undefined)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<ExplainResponse | null>(null)
+  const [code, setCode] = useState("");
+  const [language, setLanguage] = useState<ExplainRequest["language"]>("auto");
+  const [depth, setDepth] =
+    useState<NonNullable<ExplainRequest["depth"]>>("detailed");
+  const [selectedLine, setSelectedLine] = useState<number | undefined>(
+    undefined
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ExplainResponse | null>(null);
 
-  const canSubmit = useMemo(() => code.trim().length > 0 && !loading, [code, loading])
+  const canSubmit = useMemo(
+    () => code.trim().length > 0 && !loading,
+    [code, loading]
+  );
 
   useEffect(() => {
     if (selectedLine) {
-      const el = document.getElementById(`code-line-${selectedLine}`)
+      const el = document.getElementById(`code-line-${selectedLine}`);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
-  }, [selectedLine])
+  }, [selectedLine]);
 
   async function onExplain() {
-    setLoading(true)
-    setError(null)
-    setSelectedLine(undefined)
+    setLoading(true);
+    setError(null);
+    setSelectedLine(undefined);
     try {
-      const res = await fetch('/api/explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code,
           language,
-          autodetect: language === 'auto',
-          depth
-        } satisfies ExplainRequest)
-      })
-      if (!res.ok) throw new Error('Request failed')
-      const data = (await res.json()) as ExplainResponse
-      setResult(data)
+          autodetect: language === "auto",
+          depth,
+        } satisfies ExplainRequest),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      const data = (await res.json()) as ExplainResponse;
+      setResult(data);
     } catch (e) {
-      setError('Failed to fetch explanation. Using mock if available.')
+      setError("Failed to fetch explanation. Using mock if available.");
       try {
-        const res = await fetch('/api/explain', { method: 'POST', body: JSON.stringify({ code: 'x' }) })
-        if (res.ok) setResult((await res.json()) as ExplainResponse)
+        const res = await fetch("/api/explain", {
+          method: "POST",
+          body: JSON.stringify({ code: "x" }),
+        });
+        if (res.ok) setResult((await res.json()) as ExplainResponse);
       } catch {}
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -60,13 +69,21 @@ export default function Page() {
     <main className="max-w-6xl mx-auto p-6 space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Code Explainer</h1>
-        <p className="text-neutral-600">Paste snippet → line-by-line explanation + complexity</p>
+        <p className="text-neutral-600">
+          Paste snippet → line-by-line explanation + complexity
+        </p>
       </header>
 
-      <section className="card space-y-4" aria-busy={loading} aria-live="polite">
+      <section
+        className="card space-y-4"
+        aria-busy={loading}
+        aria-live="polite"
+      >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="flex flex-col gap-1">
-            <label htmlFor="language" className="text-sm font-medium">Language</label>
+            <label htmlFor="language" className="text-sm font-medium">
+              Language
+            </label>
             <select
               id="language"
               className="border rounded-md px-3 py-2 text-sm"
@@ -82,7 +99,9 @@ export default function Page() {
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="depth" className="text-sm font-medium">Depth</label>
+            <label htmlFor="depth" className="text-sm font-medium">
+              Depth
+            </label>
             <select
               id="depth"
               className="border rounded-md px-3 py-2 text-sm"
@@ -96,7 +115,9 @@ export default function Page() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="code" className="text-sm font-medium">Your code</label>
+          <label htmlFor="code" className="text-sm font-medium">
+            Your code
+          </label>
           <textarea
             id="code"
             className="font-mono bg-neutral-50 text-neutral-800 overflow-auto text-sm sm:text-[13px] whitespace-pre border rounded-md min-h-[160px] p-3"
@@ -107,12 +128,18 @@ export default function Page() {
           />
           <div className="flex items-center gap-3">
             <button className="btn" onClick={onExplain} disabled={!canSubmit}>
-              {loading ? 'Explaining…' : 'Explain Code'}
+              {loading ? "Explaining…" : "Explain Code"}
             </button>
-            <button type="button" className="btn-secondary" onClick={() => setCode(SAMPLE)}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setCode(SAMPLE)}
+            >
               Use sample
             </button>
-            <span className="text-xs text-neutral-600">We don’t store your code.</span>
+            <span className="text-xs text-neutral-600">
+              We don’t store your code.
+            </span>
           </div>
         </div>
         {error && (
@@ -123,15 +150,25 @@ export default function Page() {
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <CodeViewer code={code || SAMPLE} selectedLine={selectedLine} onSelectLine={setSelectedLine} />
-        <AnalysisPanel result={result} selectedLine={selectedLine} onSelectLine={(n) => {
-          setSelectedLine(n)
-          // Scroll code panel line into view on the client
-          // (basic approach; DOM refs can refine if needed)
-        }} />
+        <CodeViewer
+          code={code || SAMPLE}
+          selectedLine={selectedLine}
+          onSelectLine={setSelectedLine}
+        />
+        <AnalysisPanel
+          result={result}
+          selectedLine={selectedLine}
+          onSelectLine={(n) => {
+            setSelectedLine(n);
+            // Scroll code panel line into view on the client
+            // (basic approach; DOM refs can refine if needed)
+          }}
+        />
       </section>
 
-      <footer className="text-center text-xs text-neutral-500">Demo-only • No code is stored</footer>
+      <footer className="text-center text-xs text-neutral-500">
+        Demo-only • No code is stored
+      </footer>
     </main>
-  )
+  );
 }
