@@ -1,8 +1,9 @@
 export type ExplainRequest = {
   code: string;
-  language?: "auto" | "javascript" | "typescript" | "python" | "go" | "java";
+  language?: 'auto' | 'javascript' | 'typescript' | 'python' | 'go' | 'java';
   autodetect?: boolean;
-  depth?: "brief" | "detailed";
+  depth?: 'brief' | 'detailed';
+  targetLanguage?: 'en' | 'id' | 'su' | 'ja' | 'de';
 };
 
 export type ExplainResponse = {

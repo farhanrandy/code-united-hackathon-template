@@ -18,6 +18,9 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ExplainResponse | null>(null);
+  const [targetLanguage, setTargetLanguage] = useState<
+    "en" | "id" | "su" | "ja" | "de"
+  >("en");
 
   const canSubmit = useMemo(
     () => code.trim().length > 0 && !loading,
@@ -46,6 +49,7 @@ export default function Page() {
           language,
           autodetect: language === "auto",
           depth,
+          targetLanguage,
         } satisfies ExplainRequest),
       });
       if (!res.ok) throw new Error("Request failed");
@@ -110,6 +114,23 @@ export default function Page() {
             >
               <option value="brief">Brief</option>
               <option value="detailed">Detailed</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="targetLanguage" className="text-sm font-medium">
+              Explanation language
+            </label>
+            <select
+              id="targetLanguage"
+              className="border rounded p-2"
+              value={targetLanguage}
+              onChange={(e) => setTargetLanguage(e.target.value as any)}
+            >
+              <option value="en">English</option>
+              <option value="id">Indonesia</option>
+              <option value="su">Sunda</option>
+              <option value="ja">日本語 (Japanese)</option>
+              <option value="de">Deutsch (German)</option>
             </select>
           </div>
         </div>

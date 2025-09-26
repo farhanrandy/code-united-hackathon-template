@@ -11,7 +11,20 @@ const ExplainSchema = z.object({
     .default("auto"),
   autodetect: z.boolean().optional().default(true),
   depth: z.enum(["brief", "detailed"]).optional().default("detailed"),
+  targetLanguage: z
+    .enum(["en", "id", "su", "ja", "de"])
+    .optional()
+    .default("en"),
 });
+
+// Map targetLanguage → human-readable hint for Gemini
+const LANG_MAP: Record<string, string> = {
+  en: "English",
+  id: "Indonesian",
+  su: "Sundanese",
+  ja: "Japanese",
+  de: "German",
+};
 
 function mockExplain(): ExplainResponse {
   const sample = `function sumUnique(arr){ const set=new Set(arr); let sum=0; for(const v of set) sum+=v; return sum; }`;
@@ -80,7 +93,6 @@ export async function POST(req: Request) {
     }
     const body = parsed.data;
 
-    // Ganti ke kunci Gemini
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(mockExplain());
@@ -90,28 +102,29 @@ export async function POST(req: Request) {
     try {
       const ai = new GoogleGenAI({ apiKey });
 
+      const targetFull = LANG_MAP[body.targetLanguage] ?? "English";
+
       const system =
-        'You are a precise code explainer. Return STRICT JSON matching this shape: { "language": string, "summary": string, "bigO": { "time": string, "space": string, "rationale"?: string }, "byLine": [ { "line": number, "code": string, "explanation": string } ], "potentialIssues": string[], "refactors": string[], "tests": string[] }. No extra commentary. No markdown. Only JSON.';
+        'You are a precise code explainer. Return STRICT JSON matching this shape: { "language": string, "summary": string, "bigO": { "time": string, "space": string, "rationale"?: string }, "byLine": [ { "line": number, "code": string, "explanation": string } ], "potentialIssues": string[], "refactors": string[], "tests": string[] }. Write the entire JSON’s human-readable text in the requested target language. No extra commentary. No markdown. Only JSON.';
 
       const user =
         `Language: ${body.language}. Autodetect: ${body.autodetect}. Depth: ${body.depth}.\n` +
-        "Explain the following code line-by-line and provide the required fields as JSON only.\n\n" +
+        `Target explanation language: ${targetFull}. All explanations, summary, issues, refactors, tests, and bigO rationale must be written in ${targetFull}.\n` +
+        'Explain the following code line-by-line and provide the required fields as JSON only. The "byLine" should map logically to the code lines.\n\n' +
         body.code;
 
-      // Sesuai dokumentasi terbaru: models.generateContent
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: `${system}\n\n${user}`,
-        // Jika ingin paksa JSON dan properti ini tersedia di versi SDK-mu:
-        // generationConfig: { responseMimeType: "application/json" } as any,
-      });
+        generationConfig: { responseMimeType: "application/json" },
+      } as any); // <-- cast options to any to silence TS in @google/genai
 
-      // Ambil teks dari respons (dukungan untuk variasi SDK)
+      // Extract text from response (handles both function or string forms)
       let content = "";
       try {
-        const t: any = (response as any).text;
+        const r: any = response;
         content =
-          typeof t === "function" ? await t.call(response) : String(t ?? "");
+          typeof r.text === "function" ? await r.text() : String(r.text ?? "");
       } catch {
         content = "";
       }
