@@ -1,118 +1,167 @@
 "use client";
 
-import type { ExplainResponse } from "@/types/explain";
+import React from "react";
 import CopyButton from "./CopyButton";
+import type { ExplainResponse } from "@/types/explain";
 
 type Props = {
   result: ExplainResponse | null;
   selectedLine?: number;
   onSelectLine?: (n: number) => void;
+  loading?: boolean;
 };
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-2">
+      <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function SkeletonLines({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="space-y-2" aria-hidden="true">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="h-4 bg-neutral-200 rounded animate-pulse" />
+      ))}
+    </div>
+  );
+}
 
 export default function AnalysisPanel({
   result,
   selectedLine,
   onSelectLine,
+  loading,
 }: Props) {
-  if (!result) {
+  if (loading) {
     return (
-      <div className="card">
-        <p className="text-sm text-neutral-600">
-          No analysis yet. Paste code and click “Explain Code”.
-        </p>
+      <div className="space-y-4">
+        <Section title="Summary">
+          <SkeletonLines rows={3} />
+        </Section>
+        <Section title="Complexity">
+          <div className="flex gap-2">
+            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs w-16 h-5 bg-neutral-200 animate-pulse" />
+            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs w-20 h-5 bg-neutral-200 animate-pulse" />
+          </div>
+          <div className="mt-2">
+            <SkeletonLines rows={2} />
+          </div>
+        </Section>
+        <Section title="By Line">
+          <SkeletonLines rows={5} />
+        </Section>
       </div>
     );
   }
 
-  const complexity = `Time: ${result.bigO?.time ?? "n/a"}, Space: ${
-    result.bigO?.space ?? "n/a"
-  }${result.bigO?.rationale ? `\nRationale: ${result.bigO.rationale}` : ""}`;
+  if (!result) {
+    return (
+      <p className="text-neutral-500 text-[15px]">
+        No analysis yet. Paste code and click Explain.
+      </p>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="card">
-        <h3 className="font-semibold mb-2">By Line</h3>
+    <div className="space-y-6">
+      <Section title="Summary">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-[15px] leading-7 text-neutral-800">
+            {result.summary}
+          </p>
+          <CopyButton value={result.summary} />
+        </div>
+      </Section>
+
+      <Section title="Complexity">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs border-neutral-300 text-neutral-700">
+            Time: {result.bigO?.time ?? "-"}
+          </span>
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs border-neutral-300 text-neutral-700">
+            Space: {result.bigO?.space ?? "-"}
+          </span>
+          <CopyButton
+            value={`Time: ${result.bigO?.time ?? "-"} | Space: ${
+              result.bigO?.space ?? "-"
+            }${result.bigO?.rationale ? `\nRationale: ${result.bigO.rationale}` : ""}`}
+          />
+        </div>
+        {result.bigO?.rationale && (
+          <p className="text-[15px] leading-7 text-neutral-800 mt-2">
+            {result.bigO.rationale}
+          </p>
+        )}
+      </Section>
+
+      <Section title="By Line">
         <ul className="space-y-2">
-          {(result.byLine ?? []).map((item, idx) => (
-            <li key={idx}>
+          {(result.byLine ?? []).map((item, i) => (
+            <li key={`${item.line}-${i}`}>
               <button
                 type="button"
-                className={`w-full text-left rounded-md px-2 py-2 hover:bg-neutral-50 border ${
-                  selectedLine === item.line
-                    ? "bg-yellow-50 border-yellow-200"
-                    : "border-transparent"
-                }`}
                 onClick={() => onSelectLine?.(item.line)}
+                className="w-full text-left rounded-lg px-3 py-2 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black/10"
+                aria-label={`Focus line ${item.line}`}
               >
-                <div className="text-sm">
-                  <span className="font-mono chip mr-2">Line {item.line}</span>
-                  <span className="font-medium">{item.explanation}</span>
-                </div>
-                <div className="text-xs mt-1 font-mono text-neutral-600 overflow-hidden text-ellipsis whitespace-nowrap">
-                  {item.code}
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs border-neutral-300 text-neutral-700">
+                    #{item.line}
+                  </span>
+                  <div className="flex-1">
+                    <div className="font-mono text-[13px] text-neutral-800">
+                      {item.code}
+                    </div>
+                    <div className="text-[15px] leading-7 text-neutral-800">
+                      {item.explanation}
+                    </div>
+                  </div>
                 </div>
               </button>
             </li>
           ))}
         </ul>
-      </div>
+      </Section>
 
-      <div className="card space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Summary</h3>
-          <CopyButton value={result.summary ?? ""} />
-        </div>
-        <p className="text-sm leading-6 text-neutral-800">
-          {result.summary ?? "—"}
-        </p>
-      </div>
-
-      <div className="card space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Complexity</h3>
-          <CopyButton value={complexity} />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="chip">Time: {result.bigO?.time ?? "n/a"}</span>
-          <span className="chip">Space: {result.bigO?.space ?? "n/a"}</span>
-        </div>
-        {result.bigO?.rationale && (
-          <p className="text-sm text-neutral-800">{result.bigO.rationale}</p>
-        )}
-      </div>
-
-      {!!result.potentialIssues?.length && (
-        <div className="card">
-          <h3 className="font-semibold mb-2">Potential Issues</h3>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
-            {result.potentialIssues.map((x, i) => (
-              <li key={i}>{x}</li>
+      {result.potentialIssues?.length ? (
+        <Section title="Potential Issues">
+          <ul className="list-disc pl-5 space-y-1 text-[15px] leading-7 text-neutral-800">
+            {result.potentialIssues.map((s, i) => (
+              <li key={i}>{s}</li>
             ))}
           </ul>
-        </div>
-      )}
+        </Section>
+      ) : null}
 
-      {!!result.refactors?.length && (
-        <div className="card">
-          <h3 className="font-semibold mb-2">Refactors</h3>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
-            {result.refactors.map((x, i) => (
-              <li key={i}>{x}</li>
+      {result.refactors?.length ? (
+        <Section title="Refactors">
+          <ul className="list-disc pl-5 space-y-1 text-[15px] leading-7 text-neutral-800">
+            {result.refactors.map((s, i) => (
+              <li key={i}>{s}</li>
             ))}
           </ul>
-        </div>
-      )}
+        </Section>
+      ) : null}
 
-      {!!result.tests?.length && (
-        <div className="card">
-          <h3 className="font-semibold mb-2">Suggested Tests</h3>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
-            {result.tests.map((x, i) => (
-              <li key={i}>{x}</li>
+      {result.tests?.length ? (
+        <Section title="Suggested Tests">
+          <ul className="list-disc pl-5 space-y-1 text-[15px] leading-7 text-neutral-800">
+            {result.tests.map((s, i) => (
+              <li key={i}>{s}</li>
             ))}
           </ul>
-        </div>
-      )}
+        </Section>
+      ) : null}
     </div>
   );
 }

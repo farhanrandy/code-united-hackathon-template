@@ -2,32 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom tweaks */
-:root {
-  --border: 214 32% 91%;
+/* Base typography resets for better hierarchy */
+@layer base {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-neutral-100;
+  }
 }
 
-html,
-body {
-  height: 100%;
-}
-
-body {
-  @apply bg-white text-neutral-900;
-}
-
-.card {
-  @apply rounded-xl border border-[hsl(var(--border))] shadow-sm p-4 sm:p-6 bg-white;
-}
-
-.chip {
-  @apply inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700;
-}
-
-.btn {
-  @apply inline-flex items-center justify-center rounded-md bg-black text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-.btn-secondary {
-  @apply inline-flex items-center justify-center rounded-md bg-neutral-100 text-neutral-800 px-3 py-2 text-sm font-medium hover:bg-neutral-200;
+/* Reusable utilities */
+@layer utilities {
+  .skeleton {
+    @apply bg-neutral-200 animate-pulse rounded;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs;
+  }
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 focus:outline-none;
+  }
+  .btn-primary {
+    @apply bg-black text-white hover:bg-black/90 focus:ring-2 focus:ring-black/20 disabled:opacity-60;
+  }
+  .btn-outline {
+    @apply border border-neutral-300 hover:bg-neutral-50 focus:ring-2 focus:ring-black/10;
+  }
+  .card {
+    @apply rounded-xl border shadow-sm bg-white p-4 sm:p-6;
+  }
+  .code-block {
+    @apply font-mono bg-neutral-50 text-neutral-800 overflow-auto text-sm sm:text-[13px] whitespace-pre;
+  }
+  .line-num {
+    @apply select-none text-neutral-500 pr-3 border-r mr-3 sticky left-0 bg-neutral-50 text-right w-10 shrink-0;
+  }
+  .line-selected {
+    @apply bg-yellow-50 ring-1 ring-yellow-200;
+  }
+  .line-hover {
+    @apply hover:bg-neutral-100;
+  }
 }

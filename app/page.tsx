@@ -1,45 +1,36 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ExplainRequest, ExplainResponse } from "@/types/explain";
-import CodeViewer from "@/components/CodeViewer";
 import AnalysisPanel from "@/components/AnalysisPanel";
+import CodeViewer from "@/components/CodeViewer";
+import CopyButton from "@/components/CopyButton";
 
 const SAMPLE = `function sumUnique(arr) { const set = new Set(arr); let sum = 0; for (const v of set) sum += v; return sum; }\nconsole.log(sumUnique([1,2,2,3]));`;
 
 export default function Page() {
-  const [code, setCode] = useState("");
-  const [language, setLanguage] = useState<ExplainRequest["language"]>("auto");
-  const [depth, setDepth] =
-    useState<NonNullable<ExplainRequest["depth"]>>("detailed");
-  const [selectedLine, setSelectedLine] = useState<number | undefined>(
-    undefined
-  );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ExplainResponse | null>(null);
+  const [code, setCode] = useState<string>(""); // or existing initial
+  const [language, setLanguage] = useState<
+    "auto" | "javascript" | "typescript" | "python" | "go" | "java"
+  >("auto");
+  const [depth, setDepth] = useState<"brief" | "detailed">("detailed");
   const [targetLanguage, setTargetLanguage] = useState<
     "en" | "id" | "su" | "ja" | "de"
   >("en");
-
-  const canSubmit = useMemo(
-    () => code.trim().length > 0 && !loading,
-    [code, loading]
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+  const [selectedLine, setSelectedLine] = useState<number | undefined>(
+    undefined
   );
 
-  useEffect(() => {
-    if (selectedLine) {
-      const el = document.getElementById(`code-line-${selectedLine}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }
-  }, [selectedLine]);
+  function cx(...cls: Array<string | false | undefined>) {
+    return cls.filter(Boolean).join(" ");
+  }
 
   async function onExplain() {
     setLoading(true);
     setError(null);
-    setSelectedLine(undefined);
+    setResult(null);
     try {
       const res = await fetch("/api/explain", {
         method: "POST",
@@ -50,20 +41,12 @@ export default function Page() {
           autodetect: language === "auto",
           depth,
           targetLanguage,
-        } satisfies ExplainRequest),
+        }),
       });
-      if (!res.ok) throw new Error("Request failed");
-      const data = (await res.json()) as ExplainResponse;
+      const data = await res.json();
       setResult(data);
-    } catch (e) {
-      setError("Failed to fetch explanation. Using mock if available.");
-      try {
-        const res = await fetch("/api/explain", {
-          method: "POST",
-          body: JSON.stringify({ code: "x" }),
-        });
-        if (res.ok) setResult((await res.json()) as ExplainResponse);
-      } catch {}
+    } catch (e: any) {
+      setError("Failed to explain code. Showing mock if available.");
     } finally {
       setLoading(false);
     }
@@ -72,25 +55,22 @@ export default function Page() {
   return (
     <main className="max-w-6xl mx-auto p-6 space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Code Explainer</h1>
-        <p className="text-neutral-600">
+        <h1 className="text-3xl font-bold tracking-tight">Code Explainer</h1>
+        <p className="text-neutral-500">
           Paste snippet → line-by-line explanation + complexity
         </p>
       </header>
 
-      <section
-        className="card space-y-4"
-        aria-busy={loading}
-        aria-live="polite"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <section className="rounded-xl border shadow-sm bg-white p-4 sm:p-6 space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+          {/* Language */}
           <div className="flex flex-col gap-1">
             <label htmlFor="language" className="text-sm font-medium">
               Language
             </label>
             <select
               id="language"
-              className="border rounded-md px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/20 placeholder:text-neutral-400"
               value={language}
               onChange={(e) => setLanguage(e.target.value as any)}
             >
@@ -102,13 +82,15 @@ export default function Page() {
               <option value="java">Java</option>
             </select>
           </div>
+
+          {/* Depth */}
           <div className="flex flex-col gap-1">
             <label htmlFor="depth" className="text-sm font-medium">
               Depth
             </label>
             <select
               id="depth"
-              className="border rounded-md px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/20"
               value={depth}
               onChange={(e) => setDepth(e.target.value as any)}
             >
@@ -116,13 +98,15 @@ export default function Page() {
               <option value="detailed">Detailed</option>
             </select>
           </div>
+
+          {/* Explanation language */}
           <div className="flex flex-col gap-1">
             <label htmlFor="targetLanguage" className="text-sm font-medium">
               Explanation language
             </label>
             <select
               id="targetLanguage"
-              className="border rounded p-2"
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/20"
               value={targetLanguage}
               onChange={(e) => setTargetLanguage(e.target.value as any)}
             >
@@ -135,59 +119,81 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="code" className="text-sm font-medium">
+        {/* Code input */}
+        <div>
+          <label htmlFor="code" className="sr-only">
             Your code
           </label>
           <textarea
             id="code"
-            className="font-mono bg-neutral-50 text-neutral-800 overflow-auto text-sm sm:text-[13px] whitespace-pre border rounded-md min-h-[160px] p-3"
+            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/20 placeholder:text-neutral-400 font-mono min-h-[160px]"
             placeholder="Paste your code here…"
-            required
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
-          <div className="flex items-center gap-3">
-            <button className="btn" onClick={onExplain} disabled={!canSubmit}>
-              {loading ? "Explaining…" : "Explain Code"}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setCode(SAMPLE)}
-            >
-              Use sample
-            </button>
-            <span className="text-xs text-neutral-600">
-              We don’t store your code.
-            </span>
-          </div>
+          <p className="mt-2 text-sm text-neutral-500">
+            We don’t store your code.
+          </p>
         </div>
-        {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm">
-            {error}
-          </div>
-        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={onExplain}
+            disabled={!code.trim() || loading}
+            className="inline-flex items-center gap-2 rounded-lg bg-black text-white px-4 py-2 hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-black/20 disabled:opacity-60"
+          >
+            {loading ? (
+              <>
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent" />
+                Explaining…
+              </>
+            ) : (
+              "Explain Code"
+            )}
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black/10"
+            onClick={() =>
+              setCode(
+                "function sumUnique(arr) { const set = new Set(arr); let sum = 0; for (const v of set) sum += v; return sum; }\nconsole.log(sumUnique([1,2,2,3]));"
+              )
+            }
+          >
+            Use sample
+          </button>
+        </div>
+
+        {error && <div className="text-sm text-red-600">{error}</div>}
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <CodeViewer
-          code={code || SAMPLE}
-          selectedLine={selectedLine}
-          onSelectLine={setSelectedLine}
-        />
-        <AnalysisPanel
-          result={result}
-          selectedLine={selectedLine}
-          onSelectLine={(n) => {
-            setSelectedLine(n);
-            // Scroll code panel line into view on the client
-            // (basic approach; DOM refs can refine if needed)
-          }}
-        />
+        {/* Left: Code */}
+        <div className="rounded-xl border shadow-sm bg-white p-4 sm:p-6 min-w-0">
+          <h2 className="text-2xl font-semibold tracking-tight mb-3">Code</h2>
+          <div className="border rounded-lg overflow-hidden">
+            <CodeViewer
+              code={code}
+              selectedLine={selectedLine}
+              onSelectLine={setSelectedLine}
+            />
+          </div>
+        </div>
+
+        {/* Right: Analysis */}
+        <div className="rounded-xl border shadow-sm bg-white p-4 sm:p-6 min-w-0">
+          <h2 className="text-2xl font-semibold tracking-tight mb-3">Analysis</h2>
+          <AnalysisPanel
+            result={result}
+            selectedLine={selectedLine}
+            onSelectLine={setSelectedLine}
+            loading={loading}
+          />
+        </div>
       </section>
 
-      <footer className="text-center text-xs text-neutral-500">
+      <footer className="text-sm text-neutral-500">
         Demo-only • No code is stored
       </footer>
     </main>
